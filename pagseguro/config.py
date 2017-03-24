@@ -22,6 +22,8 @@ class Config(dict):
 
         # default config settings
         defaults = dict(
+            PRE_APPROVAL_CREATION_URL='{}{}pre-approvals'.format(
+                base_url, version),
             PRE_APPROVAL_PAYMENT_URL='{}{}pre-approvals/payment'.format(
                 base_url, version),
             PRE_APPROVAL_CANCEL_URL='{}{}pre-approvals/cancel/%s'.format(

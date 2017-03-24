@@ -85,6 +85,18 @@ class PagSeguroCheckoutSession(XMLParser):
         self.session_id = session.get('id')
 
 
+class PagSeguroPreApprovalCreate(XMLParser):
+    def __init__(self, xml, config=None):
+        self.code = None
+        super(PagSeguroPreApprovalCreate, self).__init__(xml, config)
+
+    def parse_xml(self, xml):
+        parsed = super(PagSeguroPreApprovalCreate, self).parse_xml(xml)
+        if self.errors:
+            return
+        self.code = parsed.get('code')
+
+
 class PagSeguroPreApprovalPayment(XMLParser):
     def __init__(self, xml, config=None):
         self.code = None

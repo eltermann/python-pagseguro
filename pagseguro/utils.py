@@ -126,3 +126,35 @@ def is_valid_cnpj(value):
         raise PagSeguroValidationError(error_messages['invalid'])
 
     return orig_value
+
+
+def is_valid_phone(phone):
+    if not isinstance(phone, dict):
+        raise ValueError('Phone must be a dictionary')
+    if not 'areaCode' in phone or not 'number' in phone:
+        raise ValueError('Phone: `areaCode` and `number` required')
+    return True
+
+
+def is_valid_address(address):
+    if not isinstance(address, dict):
+        raise ValueError('Address must be a dictionary')
+    assert 'street' in address
+    assert 'number' in address
+    assert 'complement' in address
+    assert 'district' in address
+    assert 'city' in address
+    assert 'state' in address
+    assert 'country' in address
+    assert 'postalCode' in address
+    return True
+
+def is_valid_document(document):
+    if not isinstance(document, dict):
+        raise ValueError('Document must be a dictionary')
+    assert 'type' in document
+    assert document['type'] in ['CPF']
+    assert 'value' in document
+    if document['type'] == 'CPF':
+        assert is_valid_cpf(document['value'])
+    return True

@@ -3,8 +3,10 @@ import logging
 import requests
 
 from .config import Config
-from .utils import is_valid_email, is_valid_cpf, is_valid_cnpj
+from .utils import (is_valid_email, is_valid_cpf, is_valid_cnpj, is_valid_phone,
+                    is_valid_address, is_valid_document)
 from .parsers import (PagSeguroNotificationResponse,
+                      PagSeguroPreApprovalCreate,
                       PagSeguroPreApprovalNotificationResponse,
                       PagSeguroPreApprovalCancel,
                       PagSeguroCheckoutSession,
@@ -246,6 +248,53 @@ class PagSeguro(object):
         self.build_pre_approval_payment_params(**kwargs)
         response = self.post(url=self.config.PRE_APPROVAL_PAYMENT_URL)
         return PagSeguroPreApprovalPayment(response.content, self.config)
+
+    def pre_approval_create(self, plan, sender_name, sender_email,
+                            sender_phone, sender_address, sender_documents,
+                            creditcard_token, creditcard_holder_name,
+                            creditcard_holder_birthdate,
+                            creditcard_holder_phone, creditcard_holder_address,
+                            creditcard_holder_documents, reference=None,
+                            sender_ip=None, sender_hash=None):
+        """ adhere to a plan """
+        assert sender_ip or sender_hash, '`sender_ip` or `sender_hash` required'
+        assert is_valid_phone(sender_phone)
+        assert is_valid_address(sender_address)
+        assert isinstance(sender_documents, list) and \
+                all([is_valid_document(d) for d in sender_documents])
+        assert is_valid_phone(creditcard_holder_phone)
+        assert is_valid_address(creditcard_holder_address)
+        assert isinstance(creditcard_holder_documents, list) and \
+                all([is_valid_document(d) for d in creditcard_holder_documents])
+
+        params = {}
+        params['plan'] = plan
+        params['reference'] = reference if reference else '' # optional
+        params['sender'] = {
+            'name': sender_name,
+            'email': sender_email,
+            'ip': sender_ip if sender_ip else '', # optional
+            'hash': sender_hash if sender_hash else '', # optional
+            'phone': sender_phone,
+            'address': sender_address,
+            'documents': sender_documents,
+        }
+        params['paymentMethod'] = {
+            'type': 'CREDITCARD',
+            'creditCard': {
+                'token': creditcard_token,
+                'holder': {
+                    'name': creditcard_holder_name,
+                    'birthDate': creditcard_holder_birthdate,
+                    'phone': creditcard_holder_phone,
+                    'billingAddress': creditcard_holder_address,
+                    'documents': creditcard_holder_address,
+                }
+            },
+        }
+        self.data.update(params)
+        response = self.post(url=self.config.PRE_APPROVAL_CREATION_URL)
+        return PagSeguroPreApprovalCreate(response.content, self.config)
 
     def pre_approval_cancel(self, code):
         """ cancel a subscribe """
